@@ -1,0 +1,16 @@
+{
+  "name": "Agent 诊断中心",
+  "short_name": "Agent 诊断",
+  "description": "传入 Agent 工程，自动识别专业能力、量化评分并给出优化建议",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f6fa",
+  "theme_color": "#2563eb",
+  "lang": "zh-CN",
+  "icons": [
+    { "src": "/assets/icon-32.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "/assets/icon.png", "sizes": "256x256", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

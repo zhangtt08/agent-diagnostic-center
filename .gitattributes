@@ -1,0 +1,13 @@
+# 仓库内统一存 LF，检出时按平台转换，避免跨平台 diff 噪声
+* text=auto eol=lf
+
+# Windows 批处理必须是 CRLF，否则双击无法执行
+*.bat text eol=crlf
+
+# 二进制产物不做任何换行处理
+*.png binary
+*.ico binary
+*.webp binary
+
+# 示例工程是"被诊断的语料"，保持原样，不参与语言统计误判
+*.py text eol=lf

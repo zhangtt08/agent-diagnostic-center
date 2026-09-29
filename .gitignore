@@ -1,0 +1,15 @@
+# 运行时数据（可再生：删掉后下次启动会自动重建基线记录）
+data/
+
+# 依赖与产物（本项目零依赖，正常不会出现，防误提交）
+node_modules/
+package-lock.json
+
+# 本地噪声
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 注意：assets/ 下的图标是刻意纳入版本库的，
+# 这样 clone 下来双击 .bat 就有完整桌面图标，不必先跑生成脚本。

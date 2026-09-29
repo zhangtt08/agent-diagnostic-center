@@ -1,0 +1,20 @@
+{
+  "name": "agent-diagnostic-center",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Agent 诊断中心 · 传入 Agent 工程，自动识别专业能力（Loop / Memory / RAG / Tool Calling…）、量化评分并给出可执行的优化建议。零依赖桌面应用。",
+  "author": "Agent Diagnostic",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "app": "node desktop.js",
+    "icon": "node tools/make-icon.mjs",
+    "seed": "node tools/seed-samples.mjs",
+    "test": "node --test tests/*.test.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {}
+}

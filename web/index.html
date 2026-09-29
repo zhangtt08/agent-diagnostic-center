@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Agent 诊断中心</title>
+<link rel="icon" href="/assets/icon.svg" type="image/svg+xml" />
+<link rel="alternate icon" href="/assets/icon-32.png" type="image/png" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<meta name="theme-color" content="#2563eb" />
+<link rel="stylesheet" href="/css/app.css?v=__ASSET_VER__" />
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-mark" id="brand-mark"></span>
+      <span class="brand-text">Agent Diagnostic</span>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <div class="sidebar-foot">
+      <div class="promo">
+        <span class="promo-icon" id="promo-icon"></span>
+        <div class="promo-text">
+          <strong>更智能的 Agent</strong>
+          <span>源于持续的诊断</span>
+        </div>
+        <span class="promo-arrow" id="promo-arrow"></span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-title">
+        <h1>Agent 诊断中心</h1>
+        <p>传入你的 Agent 工程，自动识别所用专业能力、给出评分与可执行的优化建议。</p>
+      </div>
+      <div class="topbar-tools">
+        <label class="select">
+          <span class="dot" id="env-dot"></span>
+          <select id="env-select" aria-label="诊断目标">
+            <option value="focus">当前焦点工程</option>
+          </select>
+        </label>
+        <label class="daterange">
+          <input type="date" id="date-from" aria-label="起始日期" />
+          <span>~</span>
+          <input type="date" id="date-to" aria-label="结束日期" />
+          <span class="cal" id="cal-icon"></span>
+        </label>
+        <label class="search">
+          <span id="search-icon"></span>
+          <input type="search" id="global-search" placeholder="搜索能力 / 问题 / Run ID" />
+          <kbd>⌘K</kbd>
+        </label>
+        <button class="icon-btn" id="bell-btn" title="通知"><span id="bell-icon"></span><i class="badge" id="bell-badge">0</i></button>
+        <div class="user">
+          <span class="avatar" id="avatar"></span>
+          <span class="user-text"><strong id="user-name">本机</strong><small>诊断工作台</small></span>
+        </div>
+      </div>
+      <button class="primary-btn" id="start-btn"><span id="start-icon"></span>开始诊断</button>
+    </header>
+
+    <div class="scroll" id="scroll">
+      <div id="view" class="view"></div>
+      <footer class="foot">
+        <span id="foot-engine">引擎加载中…</span>
+        <span class="sep">·</span>
+        <span>本工具为纯静态代码分析，不会执行被诊断工程的任何代码</span>
+      </footer>
+    </div>
+  </main>
+</div>
+
+<div class="modal" id="modal">
+  <div class="modal-backdrop" data-close></div>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-label="开始诊断">
+    <div class="modal-head">
+      <h2>开始诊断</h2>
+      <button class="icon-btn ghost" data-close aria-label="关闭">✕</button>
+    </div>
+    <div class="tabs" id="diag-tabs">
+      <button class="tab active" data-tab="path">分析本地目录</button>
+      <button class="tab" data-tab="upload">上传文件</button>
+      <button class="tab" data-tab="sample">内置示例</button>
+    </div>
+    <div class="modal-body">
+      <section data-pane="path">
+        <label class="field">
+          <span>工程目录绝对路径</span>
+          <input type="text" id="path-input" placeholder="例如 D:\projects\my-agent 或 /home/dev/my-agent" />
+        </label>
+        <p class="hint">会自动跳过 node_modules、dist、.git、lockfile 等噪声目录，单个文件上限 1MB。</p>
+        <div class="quick" id="quick-paths"></div>
+      </section>
+      <section data-pane="upload" hidden>
+        <div class="drop" id="drop">
+          <input type="file" id="file-input" multiple hidden />
+          <p><strong>拖入文件</strong> 或点击选择；也可整目录上传</p>
+          <span id="upload-count">尚未选择文件</span>
+        </div>
+        <div class="row2">
+          <button class="ghost-btn" id="pick-files">选择文件</button>
+          <button class="ghost-btn" id="pick-dir">选择整个目录</button>
+        </div>
+        <ul class="filelist" id="filelist"></ul>
+      </section>
+      <section data-pane="sample" hidden>
+        <div class="samples" id="sample-list"></div>
+      </section>
+      <div class="error" id="diag-error" hidden></div>
+    </div>
+    <div class="modal-foot">
+      <span class="busy" id="diag-busy" hidden>正在解析工程…</span>
+      <button class="ghost-btn" data-close>取消</button>
+      <button class="primary-btn" id="diag-run">开始诊断</button>
+    </div>
+  </div>
+</div>
+
+<div class="drawer" id="drawer">
+  <div class="drawer-backdrop" data-drawer-close></div>
+  <div class="drawer-card">
+    <div class="modal-head">
+      <h2 id="drawer-title">详情</h2>
+      <button class="icon-btn ghost" data-drawer-close aria-label="关闭">✕</button>
+    </div>
+    <div class="drawer-body" id="drawer-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script type="module" src="/js/app.js?v=__ASSET_VER__"></script>
+</body>
+</html>
