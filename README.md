@@ -1,143 +1,88 @@
-# Agent 诊断中心
+# Agent Diagnostic Center
 
-把你自己封装的 Agent 工程交给它：**自动识别用了哪些专业能力**（Loop、Memory、RAG、Tool Calling、Planner、Reflection、MCP、Guardrails…共 32 项）、**量化评分**（8 个维度 + 综合分 + S/A/B/C/D 等级）、**给出带证据的优化建议**，界面按你给的参考图实现。
+[English](README.md) | [简体中文](README.zh-CN.md)
 
-零依赖：只用 Node.js 内置模块，不需要 `npm install`，没有 Electron，不联网下载任何东西。
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Platform](https://img.shields.io/badge/platform-Windows-0078D6?logo=windows&logoColor=white)
+![Node](https://img.shields.io/badge/Node.js%20%E2%89%A520-339933?logo=node.js&logoColor=white)
+![Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)
+![Static Analysis](https://img.shields.io/badge/analysis-static%20%7C%20offline-blueviolet)
 
-## 快速开始（Windows）
+> **Point it at your agent project and it tells you — with `file:line` evidence — which professional agent capabilities you actually have, how you score, and what to fix next.**
+>
+> **把它指向你的 Agent 工程：自动识别你真正实现了哪些专业能力，给出量化评分和带证据的优化建议。**
 
-1. 双击 **`start-agent-diagnostic.bat`**
-   → 自动启动本地服务，并用 Edge 的独立应用窗口打开界面（无地址栏，像原生软件）。
-2. 想要桌面图标：双击 **`install-desktop-shortcut.bat`**
-   → 在桌面创建带自定义图标的「Agent 诊断中心」快捷方式（图标见 `assets/icon.ico`）。
+## The problem it solves
 
-命令行方式：
+Anyone can wire up an LLM loop; few know whether their agent is built *right*. Is the loop bounded? Are tool calls schema-validated and timeout-protected? Is memory isolated per user/session? Are there hardcoded secrets? Agent Diagnostic Center answers these questions by statically scanning your source code — it never imports, executes, or uploads anything — and returns a capability inventory, an 8-dimension score with an S–D grade, and concrete fixes with `file:line` evidence.
+
+Zero dependencies: Node.js built-in modules only. No `npm install`, no Electron, no network access.
+
+## ✨ Features
+
+- **32 capability detections across 9 categories** — Loop, Memory, RAG, Tool Calling, Planner, Reflection, MCP, Guardrails and more, spanning orchestration & control, memory & context, knowledge & retrieval, tools & integration, reasoning & planning, reliability, safety & guardrails, observability, and delivery & UX. Each detection reports status (strong evidence / detected / docs-only mention / not found), confidence, matched patterns, and `file:line` code evidence.
+- **Honest confidence model** — "strong evidence" requires ≥ 2 distinct patterns across multiple files; a capability mentioned only in comments or README is downgraded to "docs-only", never passed off as implemented.
+- **24 risk checks with actionable fixes** — e.g. agent loop without a max-iteration cap (critical), tool calls without timeout protection (critical), code execution without sandboxing (critical), hardcoded secrets (critical), session history with no truncation policy, unvalidated tool arguments, non-isolated long-term memory, RAG answers without traceable citations, no eval set. Each finding includes what was found / why it matters / how to fix / sample code / evidence location.
+- **8-dimension weighted scoring** — architecture completeness (20%), reasoning & planning (14%), reliability (14%), memory & context (13%), tool orchestration (13%), knowledge augmentation (10%), safety & guardrails (8%), observability (5%). Composite score maps to S / A / B / C / D grades; the "estimated +N points" on each suggestion is back-solved from the same formula, not a made-up number.
+- **Analysis hygiene that avoids AI-guessing** — comments and docs are stripped before pattern matching (line-number geometry preserved); lockfiles and build artifacts (`package-lock.json`, `*.min.js`, `*.d.ts`, `node_modules/`, `dist/`, …) are excluded so they can't fabricate capabilities; "missing-X" checks only fire with sufficient evidence; a failing rule never takes down the whole run.
+- **Fully static & private** — your code is never imported, executed, or installed-against; analysis runs in a local process listening on `127.0.0.1` only; source never leaves the machine; history capped at 120 reports, clearable from the UI.
+- **Zero-dependency dashboard** — vanilla HTML/CSS/JS with hand-drawn SVG charts (trend lines, donut chart, pipeline view). No chart library, no CDN, no web fonts — fully offline.
+- **Never an empty shell** — 3 built-in sample projects at different maturity levels are analyzed on first launch: an 87-line naive ReAct agent (18 pts, D), a 267-line RAG copilot (47 pts, C), and a 395-line production orchestrator (61 pts, B). Verified on a real 118-file / 16k-line project: 74 pts (A), 28 capabilities, in 362 ms. The quality-rank correlation is locked in by `tests/engine.test.js`.
+
+## 🚀 Quick Start
+
+Requires Node.js ≥ 20 (verified on v24). One-click launch is Windows; `node server.js` runs anywhere.
 
 ```bash
-node desktop.js        # 启动服务 + 打开应用窗口（端口被占用时自动让位）
-node server.js         # 只启动服务，自己开浏览器
-npm test               # 跑 23 项自动化测试
-node tools/make-icon.mjs   # 重新生成图标
+git clone https://github.com/zhangtt08/agent-diagnostic-center.git
+cd agent-diagnostic-center
+node server.js
+# open the printed http://127.0.0.1:<port> in your browser
 ```
 
-要求 Node.js ≥ 20（开发验证于 v24）。
+On Windows, the friendlier path:
 
-## 三种诊断入口
+1. Double-click **`start-agent-diagnostic.bat`** — starts the local server and opens the UI in a dedicated Edge app window (no address bar, feels like a native app).
+2. Optional: double-click **`install-desktop-shortcut.bat`** — creates a desktop shortcut with the custom icon (`assets/icon.ico`).
 
-| 入口 | 用途 |
-| --- | --- |
-| 分析本地目录 | 填入工程绝对路径，直接扫描本机代码（推荐，最快） |
-| 上传文件 | 拖拽或选择文件 / 整个目录，代码不出本机 |
-| 内置示例 | 3 个不同成熟度的示例工程，首次打开即有真实数据 |
+Other commands:
 
-首次启动会自动把 3 个内置示例真实分析一遍并落盘，所以界面一打开就是有内容的状态，不是空壳。
-
-## 识别出来的东西
-
-**32 项专业能力**，分 9 类：编排与控制、记忆与上下文、知识与检索、工具与集成、推理与规划、可靠性、安全与护栏、可观测性、交付与体验。
-
-每项能力给出：状态（强证据 / 已识别 / 仅文档提及 / 未发现）、置信度、命中模式、**具体到 `文件:行号` 的代码证据**。
-
-置信度不是拍脑袋：命中 ≥2 种不同模式且跨多文件才算「强证据」；只在 README 里提到，只算「仅文档提及」，绝不冒充实现。
-
-**24 项风险检查**，例如：
-
-- Agent 循环缺少最大迭代上限（严重）
-- 工具调用没有超时保护（严重）
-- 代码执行缺少隔离限制（严重）
-- 疑似硬编码密钥（严重）
-- 会话历史无截断或压缩策略（高）
-- 工具参数未做 Schema 校验（高）
-- 长期记忆未按用户/会话隔离（高）
-- RAG 结果未做可溯源引用（中）
-- 缺少评测集，改动无法验证（中）
-
-每条都带「发现了什么 / 为什么重要 / 怎么改 / 示例代码 / 证据位置」。
-
-## 评分怎么算
-
-8 个维度加权：架构完整度 20%、推理与规划 14%、可靠性 14%、记忆与上下文 13%、工具编排 13%、知识增强 10%、安全护栏 8%、可观测性 5%。
-
-```
-维度分 = 该维度能力按权重的覆盖度 × 100 − 该维度问题扣分
-综合分 = Σ 维度分 × 维度权重
+```bash
+node desktop.js            # server + app window (auto-picks a free port)
+node server.js             # server only, open the browser yourself
+npm test                   # run the automated engine + API test suite
+node tools/make-icon.mjs   # regenerate icons
 ```
 
-扣分：严重 26 / 高 15 / 中 8 / 低 4。等级：≥85 S、≥72 A、≥58 B、≥40 C、其余 D。
+Three ways to run a diagnosis: **analyze a local directory** (enter an absolute path — fastest), **upload files or a whole folder** (drag & drop, code stays local), or **use the built-in samples**.
 
-优化建议里的「预计提升 N 分」是按同一公式反解出来的，不是随机数。
+## 🏗️ Architecture / How it works
 
-## 已验证的识别效果
-
-| 工程 | 规模 | 结果 |
-| --- | --- | --- |
-| 内置 · 最小 ReAct Agent | 87 行 | 18 分 D，13 个问题（4 严重 / 5 高） |
-| 内置 · RAG 知识库助手 | 267 行 | 47 分 C，5 个问题 |
-| 内置 · 生产级编排 Agent | 395 行 | 61 分 B，2 个问题 |
-| 真实工程 AI-Agent-Reliability-Lab | 118 文件 / 1.6 万行 | 74 分 A，28 项能力，4 个问题，362ms |
-
-质量越高的工程得分越高，这条单调关系由 `tests/engine.test.js` 锁死。
-
-## 准确性设计（避免"看起来像 AI 瞎猜"）
-
-- **注释与文档不算代码证据**：先按语言剥离注释（保留行号几何），再匹配；文档里的提及单独降级为「仅文档提及」。
-- **lockfile 与构建产物不参与分析**：`package-lock.json`、`*.min.js`、`*.d.ts`、`node_modules/`、`dist/` 等一律跳过——否则一个 lockfile 就能"凭空"造出缓存、检索、联网能力。
-- **缺失型判断只在证据充分时报**：例如「空 catch」基于原始文本判定，注释占位的 `catch {}` 不算；「无沙箱执行」要求执行证据不在 test/fixture 目录。
-- **纯静态**：不导入、不执行、不安装被诊断工程的任何代码或依赖。
-- **规则异常不拖垮整体**：单条规则抛错会被记录为一条低优先级问题，其余结论照常产出。
-
-## 界面
-
-严格对齐参考图：左侧导航（总览 / 诊断记录 / 问题分析 / Trace / 知识检索 / 优化建议 / 配置）、顶部环境选择 + 日期范围 + 搜索 + 开始诊断、5 张指标卡（含迷你趋势线与环比）、诊断趋势折线（4 个指标切换 + 悬浮 tooltip）、问题类型分布环形图、Agent 执行链路流水线、优化建议列表、最近诊断记录表。
-
-图表全部手写 SVG，无图表库、无 CDN、无字体外链，离线可用。
-
-与参考图唯一的差异是**指标语义**：参考图是线上运行时监控（任务成功率、平均响应延迟等），本工具是代码静态诊断，因此这 5 张卡换成同构但真实可算的指标（综合评分、能力覆盖度、识别专业功能数、高危问题数、优化建议数）。运行时指标无法从源码里"观察"到，编出来就是假数据。
-
-## 数据与隐私
-
-- 所有分析在本机进程内完成，不上传任何源码。
-- 诊断历史存 `data/reports/*.json` + `data/index.json`，最多保留 120 条；「配置 → 清空历史」只删本机记录，不动任何工程文件。
-- 服务只监听 `127.0.0.1`，不对局域网开放。
-
-### 缓存位置与清理
-
-应用窗口由 Edge 的 `--app` 模式承载，因此会在系统目录留一份浏览器配置：
+Pure static analysis: strip comments (preserving line numbers) → traverse the project and filter out noise/build artifacts → match capability patterns with multi-file confidence scoring → run risk checks → compute weighted dimension scores → generate suggestions with `file:line` evidence and back-solved score gains.
 
 ```
-%LOCALAPPDATA%\AgentDiagnosticCenter
-```
-
-- 它只放浏览器缓存/配置，**不含任何源码或诊断记录**；启动参数已把磁盘缓存上限设为 40MB。
-- 关闭应用窗口后可以直接删除整个目录，下次启动会自动重建，不影响任何功能。
-- 项目内的 `data/` 同理可删：下次请求会自动重新分析 3 个内置示例并补齐基线数据（靠 `data/.initialized` 标记区分"全新安装"与"你主动清空历史"，后者不会被重新塞数据）。
-
-## 目录结构
-
-```
-server.js              HTTP 服务 + API + 静态资源
-desktop.js             桌面启动器（选空闲端口 + 拉起应用窗口）
+server.js              HTTP server + REST API + static assets
+desktop.js             desktop launcher (free-port pick + Edge app window)
 src/engine/
-  languages.js         语言识别、注释剥离（保留行号）
-  scanner.js           目录遍历、噪声过滤、生成产物识别
-  metrics.js           规模 / 嵌套 / 分支密度 / 错误处理密度
-  capabilities.js      32 项专业能力规则库（含术语解释）
-  detector.js          匹配与置信度判定
-  risks.js             24 项风险检查
-  scoring.js           维度分与综合分
-  suggestions.js       建议生成与收益估算
-  pipeline.js          执行链路静态还原
-  index.js             编排入口
-src/store.js           诊断历史落盘（原子写 + 轮转）
-src/seed.js            首次启动补齐基线数据
-web/                   前端（index.html + css + js，纯手写 SVG 图表）
-samples/               3 个内置示例工程
-tests/                 23 项自动化测试（引擎 + API）
-tools/                 图标生成、快捷方式安装、种子命令
+  languages.js         language detection, comment stripping (line-number preserving)
+  scanner.js           directory traversal, noise & build-artifact filtering
+  metrics.js           size / nesting / branch density / error-handling density
+  capabilities.js      32-capability rule library (with plain-language explanations)
+  detector.js          pattern matching + confidence judgment
+  risks.js             24 risk checks
+  scoring.js           dimension & composite scores
+  suggestions.js       suggestion generation + score-gain estimation
+  pipeline.js          static reconstruction of the agent execution chain
+src/store.js           report persistence (atomic writes + rotation)
+src/seed.js            first-launch baseline seeding
+web/                   frontend (vanilla JS + hand-drawn SVG charts)
+samples/               3 built-in sample projects
+tests/                 automated tests (engine + API)
+tools/                 icon generation, shortcut installer, seed commands
 ```
 
-## 已知边界
+**Known limits, stated honestly**: static analysis tells you *whether* a practice exists, not whether it is *correct* (e.g. it detects an eval set, not its quality); heavily obfuscated or unusually named code may be missed; files over 1 MB are skipped. The dashboard cards show code-level metrics (composite score, capability coverage, critical findings), not runtime metrics — those can't be observed from source, and inventing them would be fake data.
 
-- 静态分析只能判断"有没有做"，判断不了"做得对不对"——例如能识别出有评测集，但评测集质量高低要看运行时结果。
-- 极度混淆或非常规命名的代码可能漏识别；此时可上传源码文本入口做人工补充确认。
-- 单文件超过 1MB 会被跳过（防止把数据文件当代码）。
+## 📄 License
+
+[MIT](LICENSE) © 2026 zhangtt08
